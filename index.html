@@ -4,64 +4,141 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>주간 급식표</title>
+<title>중마고 급식</title>
 
 <style>
 
-body{
+*{
     margin:0;
-    padding:20px;
-    font-family:Arial,sans-serif;
-    background:linear-gradient(135deg,#74ebd5,#ACB6E5);
+    padding:0;
+    box-sizing:border-box;
 }
 
-h1{
+body{
+    font-family:Arial,sans-serif;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+/* 전체 앱 */
+.app{
+    width:100%;
+    max-width:430px;
+    background:white;
+    border-radius:35px;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,0.25);
+}
+
+/* 메인 화면 */
+.home{
+    padding:60px 30px;
     text-align:center;
-    color:white;
+}
+
+.logo{
+    font-size:55px;
     margin-bottom:20px;
 }
 
-.table-container{
-    overflow-x:auto;
+.title{
+    font-size:38px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#333;
 }
 
-table{
+.subtitle{
+    color:gray;
+    margin-bottom:50px;
+    font-size:16px;
+}
+
+/* 버튼 */
+.meal-btn{
     width:100%;
-    border-collapse:collapse;
-    background:white;
-    border-radius:20px;
-    overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,0.2);
-}
-
-th{
-    background:#4A90E2;
+    padding:18px;
+    border:none;
+    border-radius:18px;
+    background:linear-gradient(135deg,#667eea,#764ba2);
     color:white;
-    padding:15px;
-    font-size:18px;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
 }
 
-td{
-    border:1px solid #ddd;
-    padding:15px;
-    vertical-align:top;
-    line-height:1.8;
-    font-size:15px;
+.meal-btn:hover{
+    transform:scale(1.03);
 }
 
-tr:nth-child(even){
-    background:#f8f8f8;
+/* 급식 화면 */
+.meal-screen{
+    display:none;
+    padding:25px;
 }
 
+.top-bar{
+    display:flex;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.back-btn{
+    border:none;
+    background:#f1f1f1;
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.screen-title{
+    flex:1;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin-right:45px;
+}
+
+/* 날짜 */
+.date{
+    text-align:center;
+    color:gray;
+    margin-bottom:25px;
+}
+
+/* 급식 카드 */
+.meal-card{
+    background:#f7f7fb;
+    border-radius:22px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+.meal-name{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+    color:#667eea;
+}
+
+.meal-menu{
+    line-height:1.9;
+    color:#333;
+}
+
+/* 로딩 */
 .loading{
     text-align:center;
-    color:white;
+    color:gray;
     margin-top:20px;
-}
-
-.meal-title{
-    font-weight:bold;
-    color:#4A90E2;
 }
 
 </style>
@@ -69,170 +146,172 @@ tr:nth-child(even){
 
 <body>
 
-<h1>🍱 주간 급식표</h1>
+<div class="app">
 
-<div class="table-container">
+    <!-- 메인 화면 -->
+    <div class="home" id="home">
 
-<table>
+        <div class="logo">🏫</div>
 
-<thead>
-<tr>
-    <th>날짜</th>
-    <th>아침</th>
-    <th>점심</th>
-    <th>저녁</th>
-</tr>
-</thead>
+        <div class="title">중마고</div>
 
-<tbody id="mealTable">
+        <div class="subtitle">
+            오늘의 급식을 확인해보세요
+        </div>
 
-</tbody>
+        <button class="meal-btn" onclick="showMeals()">
+            🍱 오늘 급식 보기
+        </button>
 
-</table>
+    </div>
 
-</div>
+    <!-- 급식 화면 -->
+    <div class="meal-screen" id="mealScreen">
 
-<div class="loading" id="loading">
-급식 불러오는 중...
+        <div class="top-bar">
+
+            <button class="back-btn"
+            onclick="goBack()">
+                ←
+            </button>
+
+            <div class="screen-title">
+                오늘 급식
+            </div>
+
+        </div>
+
+        <div class="date" id="date"></div>
+
+        <div id="mealContainer">
+
+            <div class="loading">
+                급식 불러오는 중...
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
 
-// ===== 학교 정보 =====
-const ATPT_OFCDC_SC_CODE = "Q10";
-const SD_SCHUL_CODE = "8490283";
+// ===== 화면 전환 =====
+function showMeals(){
+
+    document.getElementById("home").style.display =
+    "none";
+
+    document.getElementById("mealScreen").style.display =
+    "block";
+
+    loadMeals();
+
+}
+
+function goBack(){
+
+    document.getElementById("mealScreen").style.display =
+    "none";
+
+    document.getElementById("home").style.display =
+    "block";
+
+}
 
 // ===== 오늘 날짜 =====
 const today = new Date();
 
-// ===== 이번 주 월요일 찾기 =====
-const day = today.getDay();
-const monday = new Date(today);
+const year = today.getFullYear();
 
-const diff = day === 0 ? -6 : 1 - day;
+const month =
+String(today.getMonth()+1).padStart(2,'0');
 
-monday.setDate(today.getDate() + diff);
+const day =
+String(today.getDate()).padStart(2,'0');
 
-// ===== 테이블 =====
-const table = document.getElementById("mealTable");
+const ymd = `${year}${month}${day}`;
 
-// ===== 급식 가져오기 함수 =====
-async function getMeal(date){
+document.getElementById("date").innerText =
+`${year}.${month}.${day}`;
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth()+1).padStart(2,'0');
-    const day = String(date.getDate()).padStart(2,'0');
+// ===== API =====
+const url =
+`https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&MLSV_YMD=${ymd}&Type=json`;
 
-    const ymd = `${year}${month}${day}`;
+// ===== 급식 불러오기 =====
+async function loadMeals(){
 
-    const url =
-`https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=${ATPT_OFCDC_SC_CODE}&SD_SCHUL_CODE=${SD_SCHUL_CODE}&MLSV_YMD=${ymd}&Type=json`;
+    const container =
+    document.getElementById("mealContainer");
+
+    container.innerHTML =
+    `<div class="loading">불러오는 중...</div>`;
 
     try{
 
         const response = await fetch(url);
+
         const data = await response.json();
 
-        if(!data.mealServiceDietInfo){
-            return {
-                breakfast:"급식 없음",
-                lunch:"급식 없음",
-                dinner:"급식 없음"
-            };
-        }
+        const rows =
+        data.mealServiceDietInfo[1].row;
 
-        const rows = data.mealServiceDietInfo[1].row;
-
-        let breakfast = "";
-        let lunch = "";
-        let dinner = "";
+        let html = "";
 
         rows.forEach(meal => {
 
-            const type = meal.MMEAL_SC_NM;
+            const type =
+            meal.MMEAL_SC_NM;
+
             const menu =
-            meal.DDISH_NM.replace(/<br\/>/g,"<br>");
+            meal.DDISH_NM
+            .replace(/<br\/>/g,"<br>");
+
+            let emoji = "🍽️";
 
             if(type === "조식"){
-                breakfast = menu;
+                emoji = "🌅";
             }
 
             else if(type === "중식"){
-                lunch = menu;
+                emoji = "☀️";
             }
 
             else if(type === "석식"){
-                dinner = menu;
+                emoji = "🌙";
             }
+
+            html += `
+            <div class="meal-card">
+
+                <div class="meal-name">
+                    ${emoji} ${type}
+                </div>
+
+                <div class="meal-menu">
+                    ${menu}
+                </div>
+
+            </div>
+            `;
 
         });
 
-        return {
-            breakfast: breakfast || "없음",
-            lunch: lunch || "없음",
-            dinner: dinner || "없음"
-        };
+        container.innerHTML = html;
 
     }catch(error){
 
-        return {
-            breakfast:"오류",
-            lunch:"오류",
-            dinner:"오류"
-        };
-
-    }
-
-}
-
-// ===== 이번 주 5일 생성 =====
-async function loadWeekMeals(){
-
-    for(let i=0; i<5; i++){
-
-        const current = new Date(monday);
-
-        current.setDate(monday.getDate()+i);
-
-        const meals = await getMeal(current);
-
-        const year = current.getFullYear();
-        const month =
-        String(current.getMonth()+1).padStart(2,'0');
-
-        const day =
-        String(current.getDate()).padStart(2,'0');
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-        <td>
-            ${year}.${month}.${day}
-        </td>
-
-        <td>
-            ${meals.breakfast}
-        </td>
-
-        <td>
-            ${meals.lunch}
-        </td>
-
-        <td>
-            ${meals.dinner}
-        </td>
+        container.innerHTML = `
+        <div class="meal-card">
+            급식 정보가 없습니다.
+        </div>
         `;
 
-        table.appendChild(row);
-
     }
 
-    document.getElementById("loading").style.display =
-    "none";
-
 }
-
-loadWeekMeals();
 
 </script>
 
