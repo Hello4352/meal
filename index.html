@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>오늘의 급식</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(135deg,#74ebd5,#ACB6E5);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    width:90%;
+    max-width:500px;
+    background:white;
+    border-radius:25px;
+    padding:30px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.date{
+    text-align:center;
+    color:gray;
+    margin-bottom:20px;
+}
+
+.meal{
+    font-size:18px;
+    line-height:2;
+}
+
+.loading{
+    text-align:center;
+    color:gray;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🍱 오늘의 급식</h1>
+
+    <div class="date" id="date"></div>
+
+    <div class="meal loading" id="meal">
+        급식 불러오는 중...
+    </div>
+
+</div>
+
+<script>
+
+// ===== 오늘 날짜 =====
+const today = new Date();
+
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2,'0');
+const day = String(today.getDate()).padStart(2,'0');
+
+const ymd = `${year}${month}${day}`;
+
+// 날짜 표시
+document.getElementById("date").innerText =
+`${year}.${month}.${day}`;
+
+// ===== API 주소 =====
+const url =
+`https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&MLSV_YMD=${ymd}&Type=json`;
+
+// ===== 데이터 가져오기 =====
+fetch(url)
+.then(response => response.json())
+.then(data => {
+
+    console.log(data);
+
+    const meal =
+    data.mealServiceDietInfo[1].row[0].DDISH_NM;
+
+    // <br/> 줄바꿈 처리
+    const result =
+    meal.replace(/<br\/>/g, "<br>");
+
+    document.getElementById("meal").innerHTML = result;
+
+})
+.catch(error => {
+
+    console.log(error);
+
+    document.getElementById("meal").innerHTML =
+    "급식 정보가 없습니다.";
+
+});
+
+</script>
+
+</body>
+</html>
