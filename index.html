@@ -2,9 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-<title>중마고 급식</title>
+<title>중마고 앱</title>
 
 <style>
 
@@ -24,7 +25,6 @@ body{
     padding:20px;
 }
 
-/* 전체 앱 */
 .app{
     width:100%;
     max-width:430px;
@@ -34,50 +34,43 @@ body{
     box-shadow:0 20px 50px rgba(0,0,0,0.25);
 }
 
-/* 메인 화면 */
+/* 메인 */
 .home{
-    padding:60px 30px;
+    padding:50px 30px;
     text-align:center;
 }
 
 .logo{
-    font-size:55px;
+    font-size:60px;
     margin-bottom:20px;
 }
 
 .title{
-    font-size:38px;
+    font-size:40px;
     font-weight:bold;
     margin-bottom:10px;
-    color:#333;
 }
 
 .subtitle{
     color:gray;
-    margin-bottom:50px;
-    font-size:16px;
+    margin-bottom:40px;
 }
 
-/* 버튼 */
-.meal-btn{
+.menu-btn{
     width:100%;
     padding:18px;
     border:none;
     border-radius:18px;
+    margin-bottom:15px;
     background:linear-gradient(135deg,#667eea,#764ba2);
     color:white;
-    font-size:20px;
+    font-size:18px;
     font-weight:bold;
     cursor:pointer;
-    transition:0.2s;
 }
 
-.meal-btn:hover{
-    transform:scale(1.03);
-}
-
-/* 급식 화면 */
-.meal-screen{
+/* 화면 */
+.screen{
     display:none;
     padding:25px;
 }
@@ -85,15 +78,15 @@ body{
 .top-bar{
     display:flex;
     align-items:center;
-    margin-bottom:25px;
+    margin-bottom:20px;
 }
 
 .back-btn{
-    border:none;
-    background:#f1f1f1;
     width:45px;
     height:45px;
+    border:none;
     border-radius:50%;
+    background:#f1f1f1;
     font-size:20px;
     cursor:pointer;
 }
@@ -106,39 +99,47 @@ body{
     margin-right:45px;
 }
 
-/* 날짜 */
 .date{
     text-align:center;
     color:gray;
-    margin-bottom:25px;
+    margin-bottom:20px;
 }
 
-/* 급식 카드 */
-.meal-card{
+/* 카드 */
+.card{
     background:#f7f7fb;
     border-radius:22px;
     padding:20px;
-    margin-bottom:18px;
+    margin-bottom:15px;
     box-shadow:0 5px 15px rgba(0,0,0,0.05);
 }
 
-.meal-name{
+.card-title{
     font-size:20px;
     font-weight:bold;
-    margin-bottom:15px;
     color:#667eea;
+    margin-bottom:12px;
 }
 
-.meal-menu{
-    line-height:1.9;
-    color:#333;
+.card-content{
+    line-height:1.8;
 }
 
-/* 로딩 */
-.loading{
-    text-align:center;
-    color:gray;
-    margin-top:20px;
+/* 시간표 */
+.subject{
+    display:flex;
+    justify-content:space-between;
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+.subject:last-child{
+    border-bottom:none;
+}
+
+.period{
+    font-weight:bold;
+    color:#667eea;
 }
 
 </style>
@@ -148,7 +149,7 @@ body{
 
 <div class="app">
 
-    <!-- 메인 화면 -->
+    <!-- 메인 -->
     <div class="home" id="home">
 
         <div class="logo">🏫</div>
@@ -156,37 +157,100 @@ body{
         <div class="title">중마고</div>
 
         <div class="subtitle">
-            오늘의 급식을 확인해보세요
+            학교 생활 앱
         </div>
 
-        <button class="meal-btn" onclick="showMeals()">
-            🍱 오늘 급식 보기
+        <button class="menu-btn"
+        onclick="openMeal('today')">
+            🍱 오늘 급식
+        </button>
+
+        <button class="menu-btn"
+        onclick="openMeal('tomorrow')">
+            📅 내일 급식
+        </button>
+
+        <button class="menu-btn"
+        onclick="openTimetable()">
+            📚 시간표
         </button>
 
     </div>
 
     <!-- 급식 화면 -->
-    <div class="meal-screen" id="mealScreen">
+    <div class="screen" id="mealScreen">
 
         <div class="top-bar">
 
             <button class="back-btn"
-            onclick="goBack()">
+            onclick="goHome()">
                 ←
             </button>
 
-            <div class="screen-title">
-                오늘 급식
+            <div class="screen-title"
+            id="mealTitle">
+                급식
             </div>
 
         </div>
 
-        <div class="date" id="date"></div>
+        <div class="date" id="mealDate"></div>
 
-        <div id="mealContainer">
+        <div id="mealContainer"></div>
 
-            <div class="loading">
-                급식 불러오는 중...
+    </div>
+
+    <!-- 시간표 화면 -->
+    <div class="screen" id="timeScreen">
+
+        <div class="top-bar">
+
+            <button class="back-btn"
+            onclick="goHome()">
+                ←
+            </button>
+
+            <div class="screen-title">
+                오늘 시간표
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="subject">
+                <span class="period">1교시</span>
+                <span>수학</span>
+            </div>
+
+            <div class="subject">
+                <span class="period">2교시</span>
+                <span>영어</span>
+            </div>
+
+            <div class="subject">
+                <span class="period">3교시</span>
+                <span>국어</span>
+            </div>
+
+            <div class="subject">
+                <span class="period">4교시</span>
+                <span>과학</span>
+            </div>
+
+            <div class="subject">
+                <span class="period">5교시</span>
+                <span>사회</span>
+            </div>
+
+            <div class="subject">
+                <span class="period">6교시</span>
+                <span>체육</span>
+            </div>
+
+            <div class="subject">
+                <span class="period">7교시</span>
+                <span>정보</span>
             </div>
 
         </div>
@@ -197,8 +261,33 @@ body{
 
 <script>
 
-// ===== 화면 전환 =====
-function showMeals(){
+// ===== 화면 =====
+function goHome(){
+
+    document.getElementById("home").style.display =
+    "block";
+
+    document.getElementById("mealScreen").style.display =
+    "none";
+
+    document.getElementById("timeScreen").style.display =
+    "none";
+
+}
+
+// ===== 시간표 =====
+function openTimetable(){
+
+    document.getElementById("home").style.display =
+    "none";
+
+    document.getElementById("timeScreen").style.display =
+    "block";
+
+}
+
+// ===== 급식 =====
+async function openMeal(type){
 
     document.getElementById("home").style.display =
     "none";
@@ -206,48 +295,42 @@ function showMeals(){
     document.getElementById("mealScreen").style.display =
     "block";
 
-    loadMeals();
+    const today = new Date();
 
-}
+    if(type === "tomorrow"){
+        today.setDate(today.getDate()+1);
 
-function goBack(){
+        document.getElementById("mealTitle")
+        .innerText = "내일 급식";
+    }
 
-    document.getElementById("mealScreen").style.display =
-    "none";
+    else{
 
-    document.getElementById("home").style.display =
-    "block";
+        document.getElementById("mealTitle")
+        .innerText = "오늘 급식";
+    }
 
-}
+    const year = today.getFullYear();
 
-// ===== 오늘 날짜 =====
-const today = new Date();
+    const month =
+    String(today.getMonth()+1).padStart(2,'0');
 
-const year = today.getFullYear();
+    const day =
+    String(today.getDate()).padStart(2,'0');
 
-const month =
-String(today.getMonth()+1).padStart(2,'0');
+    const ymd = `${year}${month}${day}`;
 
-const day =
-String(today.getDate()).padStart(2,'0');
+    document.getElementById("mealDate").innerText =
+    `${year}.${month}.${day}`;
 
-const ymd = `${year}${month}${day}`;
-
-document.getElementById("date").innerText =
-`${year}.${month}.${day}`;
-
-// ===== API =====
-const url =
+    const url =
 `https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&MLSV_YMD=${ymd}&Type=json`;
-
-// ===== 급식 불러오기 =====
-async function loadMeals(){
 
     const container =
     document.getElementById("mealContainer");
 
     container.innerHTML =
-    `<div class="loading">불러오는 중...</div>`;
+    `<div class="card">불러오는 중...</div>`;
 
     try{
 
@@ -284,13 +367,13 @@ async function loadMeals(){
             }
 
             html += `
-            <div class="meal-card">
+            <div class="card">
 
-                <div class="meal-name">
+                <div class="card-title">
                     ${emoji} ${type}
                 </div>
 
-                <div class="meal-menu">
+                <div class="card-content">
                     ${menu}
                 </div>
 
@@ -303,12 +386,10 @@ async function loadMeals(){
 
     }catch(error){
 
-        container.innerHTML = `
-        <div class="meal-card">
+        container.innerHTML =
+        `<div class="card">
             급식 정보가 없습니다.
-        </div>
-        `;
-
+        </div>`;
     }
 
 }
