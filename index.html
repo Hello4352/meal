@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>중마고 스마트 앱</title>
 <style>
-    /* CSS 변수를 이용한 테마 컬러 관리 */
     :root {
         --primary-gradient: linear-gradient(135deg, #667eea, #764ba2);
         --bg-gradient: linear-gradient(135deg, #f5f7fa, #c3cfe2);
@@ -19,7 +18,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent; /* 모바일 터치 음영 제거 */
+        -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -33,10 +32,9 @@
         padding: 15px;
     }
 
-    /* 앱 컨테이너 */
     .app-container {
         width: 100%;
-        max-width: 412px; /* 최신 모바일 표준 너비 */
+        max-width: 412px;
         height: 840px;
         max-height: 90vh;
         background: white;
@@ -48,7 +46,6 @@
         position: relative;
     }
 
-    /* 화면 공통 스타일 및 부드러운 전환 효과 */
     .screen {
         position: absolute;
         top: 0;
@@ -73,7 +70,6 @@
         z-index: 10;
     }
 
-    /* 메인 홈 화면 */
     .home-screen {
         justify-content: center;
         text-align: center;
@@ -106,7 +102,6 @@
         font-weight: 500;
     }
 
-    /* 버튼 스타일 공통 */
     .menu-btn {
         width: 100%;
         padding: 20px;
@@ -128,10 +123,8 @@
 
     .menu-btn:active {
         transform: scale(0.97);
-        box-shadow: 0 2px 5px rgba(102, 126, 234, 0.2);
     }
 
-    /* 상단 바 네비게이션 */
     .top-navbar {
         display: flex;
         align-items: center;
@@ -152,11 +145,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.2s ease;
-    }
-
-    .back-btn:active {
-        background: #e2e8f0;
     }
 
     .screen-title {
@@ -164,7 +152,7 @@
         text-align: center;
         font-size: 22px;
         font-weight: 700;
-        margin-right: 46px; /* 버튼 크기만큼 우측 마진을 주어 정중앙 정렬 */
+        margin-right: 46px;
     }
 
     .date-indicator {
@@ -175,7 +163,26 @@
         margin-bottom: 24px;
     }
 
-    /* 카드형 레이아웃 리디자인 */
+    /* 학년/반 선택 바 스타일 */
+    .selector-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .selector-container select {
+        flex: 1;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        background-color: var(--card-bg);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-main);
+        outline: none;
+        cursor: pointer;
+    }
+
     .info-card {
         background: var(--card-bg);
         border-radius: 24px;
@@ -200,7 +207,6 @@
         color: #4a5568;
     }
 
-    /* 시간표 전용 스타일 */
     .timetable-list {
         display: flex;
         flex-direction: column;
@@ -232,12 +238,12 @@
         font-weight: 600;
     }
 
-    /* 로딩 및 에러 상태 뷰 */
     .status-msg {
         text-align: center;
         padding: 40px 0;
         color: var(--text-muted);
         font-weight: 500;
+        line-height: 1.6;
     }
 </style>
 </head>
@@ -256,7 +262,7 @@
         <button class="menu-btn" onclick="fetchAndShowMeal('tomorrow')">
             <span>📅</span> 내일 급식 보기
         </button>
-        <button class="menu-btn" onclick="switchScreen('timeScreen')">
+        <button class="menu-btn" onclick="openTimetableScreen()">
             <span>📚</span> 오늘의 시간표
         </button>
     </main>
@@ -277,34 +283,39 @@
         </header>
         <div class="date-indicator" id="timetableDate">금일 기준</div>
 
-        <div class="info-card timetable-list">
-            <div class="subject-row"><span class="period-tag">1교시</span><span class="subject-name">수학</span></div>
-            <div class="subject-row"><span class="period-tag">2교시</span><span class="subject-name">영어</span></div>
-            <div class="subject-row"><span class="period-tag">3교시</span><span class="subject-name">국어</span></div>
-            <div class="subject-row"><span class="period-tag">4교시</span><span class="subject-name">과학</span></div>
-            <div class="subject-row"><span class="period-tag">5교시</span><span class="subject-name">사회</span></div>
-            <div class="subject-row"><span class="period-tag">6교시</span><span class="subject-name">체육</span></div>
-            <div class="subject-row"><span class="period-tag">7교시</span><span class="subject-name">정보</span></div>
+        <div class="selector-container">
+            <select id="gradeSelect" onchange="fetchTimetable()">
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+                <option value="3">3학년</option>
+            </select>
+            <select id="classSelect" onchange="fetchTimetable()">
+                <option value="1">1반</option>
+                <option value="2">2반</option>
+                <option value="3">3반</option>
+                <option value="4">4반</option>
+                <option value="5">5반</option>
+            </select>
         </div>
+
+        <div class="info-card timetable-list" id="timetableContainer"></div>
     </section>
 
 </div>
 
 <script>
-// ===== [공통] 네비게이션 라우팅 구조화 =====
+// ===== [공통] 화면 라우팅 =====
 function switchScreen(screenId) {
-    // 모든 화면 비활성화 후 타겟 화면만 활성화
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
     document.getElementById(screenId).classList.add('active');
 }
 
-// ===== [급식] 데이터 파싱 및 연동 비즈니스 로직 =====
+// ===== [급식] API 연동 =====
 async function fetchAndShowMeal(targetType) {
     switchScreen('mealScreen');
     
-    // 1. 날짜 연산 최적화
     const targetDate = new Date();
     if (targetType === "tomorrow") {
         targetDate.setDate(targetDate.getDate() + 1);
@@ -318,25 +329,17 @@ async function fetchAndShowMeal(targetType) {
     const date = String(targetDate.getDate()).padStart(2, '0');
     const ymd = `${year}${month}${date}`;
 
-    document.getElementById("mealDate").innerText = `${year}.${month}.${day = date}`;
+    document.getElementById("mealDate").innerText = `${year}.${month}.${date}`;
 
-    // 2. DOM 초기화 및 로딩 인디케이터 표시
     const container = document.getElementById("mealContainer");
-    container.innerHTML = `<div class="status-msg">🍱 건강하고 맛있는 급식을 가져오는 중...</div>`;
+    container.innerHTML = `<div class="status-msg">🍱 맛있는 급식을 가져오는 중...</div>`;
 
-    // 3. API 요청 파라미터 구조화
-    const API_URL = 'https://open.neis.go.kr/hub/mealServiceDietInfo';
-    const OFFICE_CODE = 'Q10'; // 전남교육청
-    const SCHOOL_CODE = '8490283'; // 중마고등학교
-    const url = `${API_URL}?ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${ymd}&Type=json`;
+    const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&MLSV_YMD=${ymd}&Type=json`;
 
     try {
         const response = await fetch(url);
-        if(!response.ok) throw new Error("Network Response Error");
-        
         const data = await response.json();
 
-        // NEIS API 특유의 정상적인 데이터 없음 예외처리 처리 (가장 중요한 보완점)
         if (!data.mealServiceDietInfo) {
             container.innerHTML = `<div class="status-msg">정규 급식 정보가 없거나<br>주말/공휴일입니다. 😴</div>`;
             return;
@@ -346,13 +349,11 @@ async function fetchAndShowMeal(targetType) {
         let combinedHtml = "";
 
         rows.forEach(meal => {
-            const mealType = meal.MMEAL_SC_NM; // 조식, 중식, 석식
-            
-            // 정규표현식으로 알레르기 유발 정보 숫자 및 종결 마침표 싹 제거 예: "쌀밥(1.2.5.)" -> "쌀밥"
+            const mealType = meal.MMEAL_SC_NM;
             const cleanedMenu = meal.DDISH_NM
-                .replace(/\([0-9./*]*\)/g, "") // 괄호 속 숫자/마침표 제거
-                .replace(/\s+/g, " ")          // 공백 정돈
-                .replace(/<br\/>/g, "<br>");   // 줄바꿈 매핑
+                .replace(/\([0-9./*]*\)/g, "")
+                .replace(/\s+/g, " ")
+                .replace(/<br\/>/g, "<br>");
 
             let emoji = "🍽️";
             if (mealType === "조식") emoji = "🌅";
@@ -368,19 +369,75 @@ async function fetchAndShowMeal(targetType) {
         });
 
         container.innerHTML = combinedHtml;
-
     } catch (error) {
-        console.error("급식 데이터 파싱 에러:", error);
-        container.innerHTML = `<div class="status-msg">⚠️ 데이터를 불러오지 못했습니다.<br>네트워크 연결을 확인해주세요.</div>`;
+        container.innerHTML = `<div class="status-msg">⚠️ 데이터를 불러오지 못했습니다.</div>`;
     }
 }
 
-// 초기화: 요일 표시용 스크립트 간단 가동
-(function initApp() {
+// ===== [시간표] 실시간 연동 비즈니스 로직 =====
+function openTimetableScreen() {
+    switchScreen('timeScreen');
+    fetchTimetable(); // 화면을 열 때 자동으로 시간표를 불러옴
+}
+
+async function fetchTimetable() {
+    const container = document.getElementById("timetableContainer");
+    container.innerHTML = `<div class="status-msg">📚 오늘의 교실 시간표를 조회하는 중...</div>`;
+
+    // 1. 현재 날짜 정보 및 드롭다운 선택값 가져오기
     const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const date = String(today.getDate()).padStart(2, '0');
+    const ymd = `${year}${month}${date}`;
+
     const week = ['일', '월', '화', '수', '목', '금', '토'];
     document.getElementById("timetableDate").innerText = `${today.getMonth()+1}월 ${today.getDate()}일 (${week[today.getDay()]}요일)`;
-})();
+
+    const grade = document.getElementById("gradeSelect").value;
+    const classNm = document.getElementById("classSelect").value;
+
+    // 2. 나이스 고등학교 시간표 API 주소 구성
+    const API_URL = 'https://open.neis.go.kr/hub/hisTimetable';
+    const OFFICE_CODE = 'Q10'; // 전남교육청
+    const SCHOOL_CODE = '8490283'; // 중마고등학교
+    const url = `${API_URL}?ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNm}&Type=json`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // 시간표 정보가 없는 경우 (주말, 공휴일, 방학 등)
+        if (!data.hisTimetable) {
+            container.innerHTML = `<div class="status-msg">오늘 주말이거나 수업 정보가 없습니다. ✨</div>`;
+            return;
+        }
+
+        const rows = data.hisTimetable[1].row;
+
+        // 교시(PERIO) 순서대로 정렬 (나이스 API는 간혹 순서가 섞여서 올 수 있음)
+        rows.sort((a, b) => parseInt(a.PERIO) - parseInt(b.PERIO));
+
+        let html = "";
+        rows.forEach(row => {
+            const period = row.PERIO; // 몇 교시
+            const subject = row.ITRT_CNTNT; // 과목명 (예: 수학, 영어)
+
+            html += `
+                <div class="subject-row">
+                    <span class="period-tag">${period}교시</span>
+                    <span class="subject-name">${subject}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error("시간표 로딩 에러:", error);
+        container.innerHTML = `<div class="status-msg">⚠️ 시간표를 불러오는데 실패했습니다.</div>`;
+    }
+}
 </script>
 
 </body>
