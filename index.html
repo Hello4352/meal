@@ -2,398 +2,385 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>중마고 앱</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중마고 스마트 앱</title>
 <style>
+    /* CSS 변수를 이용한 테마 컬러 관리 */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+        --bg-gradient: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+        --card-bg: #f8f9fa;
+        --text-main: #2d3748;
+        --text-muted: #718096;
+        --accent-color: #667eea;
+    }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent; /* 모바일 터치 음영 제거 */
+    }
 
-body{
-    font-family:Arial,sans-serif;
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-}
+    body {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+    }
 
-.app{
-    width:100%;
-    max-width:430px;
-    background:white;
-    border-radius:35px;
-    overflow:hidden;
-    box-shadow:0 20px 50px rgba(0,0,0,0.25);
-}
+    /* 앱 컨테이너 */
+    .app-container {
+        width: 100%;
+        max-width: 412px; /* 최신 모바일 표준 너비 */
+        height: 840px;
+        max-height: 90vh;
+        background: white;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
 
-/* 메인 */
-.home{
-    padding:50px 30px;
-    text-align:center;
-}
+    /* 화면 공통 스타일 및 부드러운 전환 효과 */
+    .screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 40px 24px;
+        background: white;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
 
-.logo{
-    font-size:60px;
-    margin-bottom:20px;
-}
+    .screen.active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+        z-index: 10;
+    }
 
-.title{
-    font-size:40px;
-    font-weight:bold;
-    margin-bottom:10px;
-}
+    /* 메인 홈 화면 */
+    .home-screen {
+        justify-content: center;
+        text-align: center;
+    }
 
-.subtitle{
-    color:gray;
-    margin-bottom:40px;
-}
+    .app-logo {
+        font-size: 70px;
+        margin-bottom: 16px;
+        animation: bounce 2s infinite;
+    }
 
-.menu-btn{
-    width:100%;
-    padding:18px;
-    border:none;
-    border-radius:18px;
-    margin-bottom:15px;
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    color:white;
-    font-size:18px;
-    font-weight:bold;
-    cursor:pointer;
-}
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
 
-/* 화면 */
-.screen{
-    display:none;
-    padding:25px;
-}
+    .app-title {
+        font-size: 36px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
 
-.top-bar{
-    display:flex;
-    align-items:center;
-    margin-bottom:20px;
-}
+    .app-subtitle {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin-bottom: 48px;
+        font-weight: 500;
+    }
 
-.back-btn{
-    width:45px;
-    height:45px;
-    border:none;
-    border-radius:50%;
-    background:#f1f1f1;
-    font-size:20px;
-    cursor:pointer;
-}
+    /* 버튼 스타일 공통 */
+    .menu-btn {
+        width: 100%;
+        padding: 20px;
+        border: none;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        background: var(--primary-gradient);
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: transform 0.1s ease, box-shadow 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
 
-.screen-title{
-    flex:1;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-    margin-right:45px;
-}
+    .menu-btn:active {
+        transform: scale(0.97);
+        box-shadow: 0 2px 5px rgba(102, 126, 234, 0.2);
+    }
 
-.date{
-    text-align:center;
-    color:gray;
-    margin-bottom:20px;
-}
+    /* 상단 바 네비게이션 */
+    .top-navbar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+        width: 100%;
+    }
 
-/* 카드 */
-.card{
-    background:#f7f7fb;
-    border-radius:22px;
-    padding:20px;
-    margin-bottom:15px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.05);
-}
+    .back-btn {
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--card-bg);
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+    }
 
-.card-title{
-    font-size:20px;
-    font-weight:bold;
-    color:#667eea;
-    margin-bottom:12px;
-}
+    .back-btn:active {
+        background: #e2e8f0;
+    }
 
-.card-content{
-    line-height:1.8;
-}
+    .screen-title {
+        flex: 1;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        margin-right: 46px; /* 버튼 크기만큼 우측 마진을 주어 정중앙 정렬 */
+    }
 
-/* 시간표 */
-.subject{
-    display:flex;
-    justify-content:space-between;
-    padding:12px;
-    border-bottom:1px solid #eee;
-}
+    .date-indicator {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
 
-.subject:last-child{
-    border-bottom:none;
-}
+    /* 카드형 레이아웃 리디자인 */
+    .info-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 24px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
 
-.period{
-    font-weight:bold;
-    color:#667eea;
-}
+    .card-header {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--accent-color);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
+    .card-body {
+        line-height: 1.8;
+        font-size: 16px;
+        color: #4a5568;
+    }
+
+    /* 시간표 전용 스타일 */
+    .timetable-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .subject-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 8px;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .subject-row:last-child {
+        border-bottom: none;
+    }
+
+    .period-tag {
+        font-weight: 700;
+        color: var(--accent-color);
+        background: rgba(102, 126, 234, 0.1);
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .subject-name {
+        font-weight: 600;
+    }
+
+    /* 로딩 및 에러 상태 뷰 */
+    .status-msg {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
 </style>
 </head>
-
 <body>
 
-<div class="app">
+<div class="app-container">
 
-    <!-- 메인 -->
-    <div class="home" id="home">
+    <main class="screen active" id="homeScreen">
+        <div class="app-logo">🏫</div>
+        <h1 class="app-title">중마고등학교</h1>
+        <p class="app-subtitle">스마트 루틴 캠퍼스 앱</p>
 
-        <div class="logo">🏫</div>
-
-        <div class="title">중마고</div>
-
-        <div class="subtitle">
-            학교 생활 앱
-        </div>
-
-        <button class="menu-btn"
-        onclick="openMeal('today')">
-            🍱 오늘 급식
+        <button class="menu-btn" onclick="fetchAndShowMeal('today')">
+            <span>🍱</span> 오늘 급식 보기
         </button>
-
-        <button class="menu-btn"
-        onclick="openMeal('tomorrow')">
-            📅 내일 급식
+        <button class="menu-btn" onclick="fetchAndShowMeal('tomorrow')">
+            <span>📅</span> 내일 급식 보기
         </button>
-
-        <button class="menu-btn"
-        onclick="openTimetable()">
-            📚 시간표
+        <button class="menu-btn" onclick="switchScreen('timeScreen')">
+            <span>📚</span> 오늘의 시간표
         </button>
+    </main>
 
-    </div>
-
-    <!-- 급식 화면 -->
-    <div class="screen" id="mealScreen">
-
-        <div class="top-bar">
-
-            <button class="back-btn"
-            onclick="goHome()">
-                ←
-            </button>
-
-            <div class="screen-title"
-            id="mealTitle">
-                급식
-            </div>
-
-        </div>
-
-        <div class="date" id="mealDate"></div>
-
+    <section class="screen" id="mealScreen">
+        <header class="top-navbar">
+            <button class="back-btn" onclick="switchScreen('homeScreen')">←</button>
+            <h2 class="screen-title" id="mealTitle">급식 정보</h2>
+        </header>
+        <div class="date-indicator" id="mealDate">0000.00.00</div>
         <div id="mealContainer"></div>
+    </section>
 
-    </div>
+    <section class="screen" id="timeScreen">
+        <header class="top-navbar">
+            <button class="back-btn" onclick="switchScreen('homeScreen')">←</button>
+            <h2 class="screen-title">오늘의 시간표</h2>
+        </header>
+        <div class="date-indicator" id="timetableDate">금일 기준</div>
 
-    <!-- 시간표 화면 -->
-    <div class="screen" id="timeScreen">
-
-        <div class="top-bar">
-
-            <button class="back-btn"
-            onclick="goHome()">
-                ←
-            </button>
-
-            <div class="screen-title">
-                오늘 시간표
-            </div>
-
+        <div class="info-card timetable-list">
+            <div class="subject-row"><span class="period-tag">1교시</span><span class="subject-name">수학</span></div>
+            <div class="subject-row"><span class="period-tag">2교시</span><span class="subject-name">영어</span></div>
+            <div class="subject-row"><span class="period-tag">3교시</span><span class="subject-name">국어</span></div>
+            <div class="subject-row"><span class="period-tag">4교시</span><span class="subject-name">과학</span></div>
+            <div class="subject-row"><span class="period-tag">5교시</span><span class="subject-name">사회</span></div>
+            <div class="subject-row"><span class="period-tag">6교시</span><span class="subject-name">체육</span></div>
+            <div class="subject-row"><span class="period-tag">7교시</span><span class="subject-name">정보</span></div>
         </div>
-
-        <div class="card">
-
-            <div class="subject">
-                <span class="period">1교시</span>
-                <span>수학</span>
-            </div>
-
-            <div class="subject">
-                <span class="period">2교시</span>
-                <span>영어</span>
-            </div>
-
-            <div class="subject">
-                <span class="period">3교시</span>
-                <span>국어</span>
-            </div>
-
-            <div class="subject">
-                <span class="period">4교시</span>
-                <span>과학</span>
-            </div>
-
-            <div class="subject">
-                <span class="period">5교시</span>
-                <span>사회</span>
-            </div>
-
-            <div class="subject">
-                <span class="period">6교시</span>
-                <span>체육</span>
-            </div>
-
-            <div class="subject">
-                <span class="period">7교시</span>
-                <span>정보</span>
-            </div>
-
-        </div>
-
-    </div>
+    </section>
 
 </div>
 
 <script>
-
-// ===== 화면 =====
-function goHome(){
-
-    document.getElementById("home").style.display =
-    "block";
-
-    document.getElementById("mealScreen").style.display =
-    "none";
-
-    document.getElementById("timeScreen").style.display =
-    "none";
-
+// ===== [공통] 네비게이션 라우팅 구조화 =====
+function switchScreen(screenId) {
+    // 모든 화면 비활성화 후 타겟 화면만 활성화
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    document.getElementById(screenId).classList.add('active');
 }
 
-// ===== 시간표 =====
-function openTimetable(){
-
-    document.getElementById("home").style.display =
-    "none";
-
-    document.getElementById("timeScreen").style.display =
-    "block";
-
-}
-
-// ===== 급식 =====
-async function openMeal(type){
-
-    document.getElementById("home").style.display =
-    "none";
-
-    document.getElementById("mealScreen").style.display =
-    "block";
-
-    const today = new Date();
-
-    if(type === "tomorrow"){
-        today.setDate(today.getDate()+1);
-
-        document.getElementById("mealTitle")
-        .innerText = "내일 급식";
+// ===== [급식] 데이터 파싱 및 연동 비즈니스 로직 =====
+async function fetchAndShowMeal(targetType) {
+    switchScreen('mealScreen');
+    
+    // 1. 날짜 연산 최적화
+    const targetDate = new Date();
+    if (targetType === "tomorrow") {
+        targetDate.setDate(targetDate.getDate() + 1);
+        document.getElementById("mealTitle").innerText = "내일 급식";
+    } else {
+        document.getElementById("mealTitle").innerText = "오늘 급식";
     }
 
-    else{
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const date = String(targetDate.getDate()).padStart(2, '0');
+    const ymd = `${year}${month}${date}`;
 
-        document.getElementById("mealTitle")
-        .innerText = "오늘 급식";
-    }
+    document.getElementById("mealDate").innerText = `${year}.${month}.${day = date}`;
 
-    const year = today.getFullYear();
+    // 2. DOM 초기화 및 로딩 인디케이터 표시
+    const container = document.getElementById("mealContainer");
+    container.innerHTML = `<div class="status-msg">🍱 건강하고 맛있는 급식을 가져오는 중...</div>`;
 
-    const month =
-    String(today.getMonth()+1).padStart(2,'0');
+    // 3. API 요청 파라미터 구조화
+    const API_URL = 'https://open.neis.go.kr/hub/mealServiceDietInfo';
+    const OFFICE_CODE = 'Q10'; // 전남교육청
+    const SCHOOL_CODE = '8490283'; // 중마고등학교
+    const url = `${API_URL}?ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${ymd}&Type=json`;
 
-    const day =
-    String(today.getDate()).padStart(2,'0');
-
-    const ymd = `${year}${month}${day}`;
-
-    document.getElementById("mealDate").innerText =
-    `${year}.${month}.${day}`;
-
-    const url =
-`https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&MLSV_YMD=${ymd}&Type=json`;
-
-    const container =
-    document.getElementById("mealContainer");
-
-    container.innerHTML =
-    `<div class="card">불러오는 중...</div>`;
-
-    try{
-
+    try {
         const response = await fetch(url);
-
+        if(!response.ok) throw new Error("Network Response Error");
+        
         const data = await response.json();
 
-        const rows =
-        data.mealServiceDietInfo[1].row;
+        // NEIS API 특유의 정상적인 데이터 없음 예외처리 처리 (가장 중요한 보완점)
+        if (!data.mealServiceDietInfo) {
+            container.innerHTML = `<div class="status-msg">정규 급식 정보가 없거나<br>주말/공휴일입니다. 😴</div>`;
+            return;
+        }
 
-        let html = "";
+        const rows = data.mealServiceDietInfo[1].row;
+        let combinedHtml = "";
 
         rows.forEach(meal => {
-
-            const type =
-            meal.MMEAL_SC_NM;
-
-            const menu =
-            meal.DDISH_NM
-            .replace(/<br\/>/g,"<br>");
+            const mealType = meal.MMEAL_SC_NM; // 조식, 중식, 석식
+            
+            // 정규표현식으로 알레르기 유발 정보 숫자 및 종결 마침표 싹 제거 예: "쌀밥(1.2.5.)" -> "쌀밥"
+            const cleanedMenu = meal.DDISH_NM
+                .replace(/\([0-9./*]*\)/g, "") // 괄호 속 숫자/마침표 제거
+                .replace(/\s+/g, " ")          // 공백 정돈
+                .replace(/<br\/>/g, "<br>");   // 줄바꿈 매핑
 
             let emoji = "🍽️";
+            if (mealType === "조식") emoji = "🌅";
+            else if (mealType === "중식") emoji = "☀️";
+            else if (mealType === "석식") emoji = "🌙";
 
-            if(type === "조식"){
-                emoji = "🌅";
-            }
-
-            else if(type === "중식"){
-                emoji = "☀️";
-            }
-
-            else if(type === "석식"){
-                emoji = "🌙";
-            }
-
-            html += `
-            <div class="card">
-
-                <div class="card-title">
-                    ${emoji} ${type}
+            combinedHtml += `
+                <div class="info-card">
+                    <div class="card-header">${emoji} ${mealType}</div>
+                    <div class="card-body">${cleanedMenu}</div>
                 </div>
-
-                <div class="card-content">
-                    ${menu}
-                </div>
-
-            </div>
             `;
-
         });
 
-        container.innerHTML = html;
+        container.innerHTML = combinedHtml;
 
-    }catch(error){
-
-        container.innerHTML =
-        `<div class="card">
-            급식 정보가 없습니다.
-        </div>`;
+    } catch (error) {
+        console.error("급식 데이터 파싱 에러:", error);
+        container.innerHTML = `<div class="status-msg">⚠️ 데이터를 불러오지 못했습니다.<br>네트워크 연결을 확인해주세요.</div>`;
     }
-
 }
 
+// 초기화: 요일 표시용 스크립트 간단 가동
+(function initApp() {
+    const today = new Date();
+    const week = ['일', '월', '화', '수', '목', '금', '토'];
+    document.getElementById("timetableDate").innerText = `${today.getMonth()+1}월 ${today.getDate()}일 (${week[today.getDay()]}요일)`;
+})();
 </script>
 
 </body>
