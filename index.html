@@ -242,9 +242,8 @@
         border-bottom: none;
     }
 
-    /* [신규 디자인 개편] 수업이 없을 때 스타일 처리 */
     .period-row.no-class {
-        opacity: 0.55; /* 줄 전체를 은은하게 반투명 처리 */
+        opacity: 0.6;
     }
 
     .p-num {
@@ -268,7 +267,6 @@
         color: #1a202c;
     }
 
-    /* 수업 없음 텍스트 스타일 */
     .p-name.empty-text {
         color: #a0aec0;
         font-weight: 400;
@@ -425,10 +423,13 @@ function openTimetableScreen() {
 
 async function fetchWeeklyTimetable() {
     const container = document.getElementById("timetableContainer");
-    container.innerHTML = `<div class="status-msg">📚 이번 주 월~금 주간 시간표를 가져오고 있습니다...</div>`;
+    container.innerHTML = `<div class="status-msg">📚 이번 주 월~금 주간 시간표를 분석 중입니다...</div>`;
 
     const grade = document.getElementById("gradeSelect").value;
-    const classNm = document.getElementById("classSelect").value;
+    const rawClass = document.getElementById("classSelect").value;
+    
+    // [개선 포인트 1] 나이스 API 표준에 맞춰 반 번호를 무조건 두 자리 포맷(01, 02 등)으로 치환
+    const classNm = String(rawClass).padStart(2, '0');
 
     const weekDays = getWeekDates();
     const today = new Date();
@@ -443,6 +444,7 @@ async function fetchWeeklyTimetable() {
     try {
         const fetchPromises = weekDays.map(day => {
             const ymd = `${day.getFullYear()}${String(day.getMonth() + 1).padStart(2, '0')}${String(day.getDate()).padStart(2, '0')}`;
+            // 파라미터 규격을 강화하여 전송
             const url = `https://open.neis.go.kr/hub/hisTimetable?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNm}&Type=json`;
             return fetch(url).then(res => res.json());
         });
@@ -455,16 +457,17 @@ async function fetchWeeklyTimetable() {
             const ymdString = `${targetDate.getFullYear()}${String(targetDate.getMonth() + 1).padStart(2, '0')}${String(targetDate.getDate()).padStart(2, '0')}`;
             const isToday = (ymdString === todayYMD);
 
-            // 초기 가상 시간표 어레이 선언 (빈 문자열)
-            const periods = Array(7).fill("");
+            // 1교시부터 7교시까지 담을 맵 객체 선언
+            const periodsMap = { 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "" };
 
             if (data.hisTimetable) {
                 const rows = data.hisTimetable[1].row;
                 rows.forEach(row => {
                     const pNum = parseInt(row.PERIO);
                     if (pNum >= 1 && pNum <= 7) {
-                        // 공백을 완벽 제거(.trim())하고 나이스 표준 명칭인 ITRT_CNTNT만 정확히 바인딩
-                        periods[pNum - 1] = row.ITRT_CNTNT ? row.ITRT_CNTNT.trim() : "";
+                        // [개선 포인트 2] 과목 텍스트 추출의 안전 장치를 3중으로 결합
+                        let subject = row.ITRT_CNTNT || row.ITRT_CONTENT || "";
+                        periodsMap[pNum] = subject.trim();
                     }
                 });
             }
@@ -481,14 +484,15 @@ async function fetchWeeklyTimetable() {
                     <div class="day-grid">
             `;
 
+            // [개선 포인트 3] 데이터 인덱스가 아닌 고정 루프 구조로 1~7교시 출력을 강제 바인딩
             for (let p = 1; p <= 7; p++) {
-                let subjectShow = periods[p-1];
+                let subjectShow = periodsMap[p];
                 let rowClass = "";
                 let textClass = "";
                 
-                // 학교 측에서 정규 수업을 등록하지 않았거나 비워둔 교시일 때의 예외 처리 단락
-                if (!subjectShow) {
-                    subjectShow = "수업 없음 (또는 행사)";
+                if (!subjectShow || subjectShow === "") {
+                    // 학교 나이스 시스템상 비어있을 때 표기 전환
+                    subjectShow = "동아리/창체/미등록";
                     rowClass = "no-class";
                     textClass = "empty-text";
                 }
