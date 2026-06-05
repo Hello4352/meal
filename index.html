@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>중마고 스마트 앱</title>
+<title>중마고 스마트 급식 앱</title>
 <style>
     :root {
         --primary-gradient: linear-gradient(135deg, #667eea, #764ba2);
@@ -98,31 +98,83 @@
     .app-subtitle {
         color: var(--text-muted);
         font-size: 16px;
-        margin-bottom: 48px;
+        margin-bottom: 40px;
         font-weight: 500;
+    }
+
+    /* 날짜 선택 섹션 스타일 */
+    .date-select-box {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 24px;
+        margin-bottom: 24px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .date-select-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+        display: block;
+        text-align: left;
+    }
+
+    .date-input-wrapper {
+        display: flex;
+        gap: 10px;
+    }
+
+    .date-picker {
+        flex: 1;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid #cbd5e0;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: inherit;
+        color: var(--text-main);
+        outline: none;
+        background: white;
+    }
+
+    .go-btn {
+        padding: 0 20px;
+        border: none;
+        border-radius: 14px;
+        background: var(--primary-gradient);
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
     }
 
     .menu-btn {
         width: 100%;
-        padding: 20px;
+        padding: 18px;
         border: none;
         border-radius: 20px;
-        margin-bottom: 16px;
-        background: var(--primary-gradient);
-        color: white;
-        font-size: 18px;
+        margin-bottom: 12px;
+        background: #f1f3f9;
+        color: var(--text-main);
+        font-size: 16px;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        transition: transform 0.1s ease, box-shadow 0.2s ease;
+        transition: transform 0.1s ease, background 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
     }
 
+    .menu-btn.primary {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+
     .menu-btn:active {
-        transform: scale(0.97);
+        transform: scale(0.98);
     }
 
     .top-navbar {
@@ -158,119 +210,48 @@
     .date-indicator {
         text-align: center;
         color: var(--text-muted);
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 16px;
+        font-weight: 700;
         margin-bottom: 24px;
+        background: #edf2f7;
+        padding: 8px 16px;
+        border-radius: 30px;
+        display: inline-block;
+        align-self: center;
     }
 
-    .selector-container {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 24px;
-    }
-
-    .selector-container select {
-        flex: 1;
-        padding: 14px;
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        background-color: var(--card-bg);
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text-main);
-        outline: none;
-        cursor: pointer;
-    }
-
-    .day-card {
+    /* 급식 카드 디자인 */
+    .info-card {
         background: var(--card-bg);
         border-radius: 22px;
-        padding: 18px 20px;
-        margin-bottom: 20px;
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        transition: all 0.3s ease;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-    .day-title {
-        font-size: 17px;
-        font-weight: 700;
-        margin-bottom: 14px;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .day-card.is-today {
-        background: #f0f4ff;
-        border: 2.5px solid #667eea;
-        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
-        transform: scale(1.01);
-    }
-
-    .day-card.is-today .day-title {
-        color: #764ba2;
+    .card-header {
         font-size: 18px;
         font-weight: 800;
+        color: #4a5568;
+        margin-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 6px;
     }
 
-    .today-badge {
-        background: var(--primary-gradient);
-        color: white;
-        font-size: 11px;
-        padding: 3px 9px;
-        border-radius: 20px;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-    }
-
-    .day-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .period-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 6px;
-        border-bottom: 1px dashed #e2e8f0;
-    }
-
-    .period-row:last-child {
-        border-bottom: none;
-    }
-
-    .period-row.no-class {
-        opacity: 0.6;
-    }
-
-    .p-num {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-muted);
-    }
-
-    .day-card.is-today .p-num {
-        color: var(--accent-color);
-    }
-
-    .p-name {
+    .card-body {
         font-size: 15px;
-        font-weight: 600;
+        line-height: 1.6;
         color: var(--text-main);
+        font-weight: 500;
     }
 
-    .day-card.is-today .p-name {
-        font-weight: 800;
-        color: #1a202c;
-    }
-
-    .p-name.empty-text {
-        color: #a0aec0;
-        font-weight: 400;
-        font-style: italic;
+    .status-msg {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 16px;
+        padding: 40px 20px;
+        line-height: 1.5;
     }
 </style>
 </head>
@@ -279,18 +260,23 @@
 <div class="app-container">
 
     <main class="screen active" id="homeScreen">
-        <div class="app-logo">🏫</div>
-        <h1 class="app-title">중마고등학교</h1>
-        <p class="app-subtitle">스마트 루틴 캠퍼스 앱</p>
+        <div class="app-logo">🍱</div>
+        <h1 class="app-title">중마고 급식실</h1>
+        <p class="app-subtitle">스마트 날짜별 급식 조회 시스템</p>
 
-        <button class="menu-btn" onclick="fetchAndShowMeal('today')">
-            <span>🍱</span> 오늘 급식 보기
+        <div class="date-select-box">
+            <label class="date-select-label" for="customDate">📅 다른 날짜 급식 찾기</label>
+            <div class="date-input-wrapper">
+                <input type="date" id="customDate" class="date-picker">
+                <button class="go-btn" onclick="fetchCustomDateMeal()">조회</button>
+            </div>
+        </div>
+
+        <button class="menu-btn primary" onclick="fetchAndShowMeal('today')">
+            <span>☀️</span> 오늘 급식 바로보기
         </button>
         <button class="menu-btn" onclick="fetchAndShowMeal('tomorrow')">
-            <span>📅</span> 내일 급식 보기
-        </button>
-        <button class="menu-btn" onclick="openTimetableScreen()">
-            <span>📚</span> 주간 시간표 보기
+            <span>🌙</span> 내일 급식 바로보기
         </button>
     </main>
 
@@ -303,34 +289,12 @@
         <div id="mealContainer"></div>
     </section>
 
-    <section class="screen" id="timeScreen">
-        <header class="top-navbar">
-            <button class="back-btn" onclick="switchScreen('homeScreen')">←</button>
-            <h2 class="screen-title">주간 시간표</h2>
-        </header>
-        <div class="date-indicator" id="timetableRangeTitle">이번 주 학급 수업</div>
-
-        <div class="selector-container">
-            <select id="gradeSelect" onchange="fetchWeeklyTimetable()">
-                <option value="1">1학년</option>
-                <option value="2">2학년</option>
-                <option value="3">3학년</option>
-            </select>
-            <select id="classSelect" onchange="fetchWeeklyTimetable()">
-                <option value="1">1반</option>
-                <option value="2">2반</option>
-                <option value="3">3반</option>
-                <option value="4">4반</option>
-                <option value="5">5반</option>
-            </select>
-        </div>
-
-        <div id="timetableContainer"></div>
-    </section>
-
 </div>
 
 <script>
+// 앱 시작 시 날짜 선택기의 기본값을 오늘 날짜로 세팅
+document.getElementById('customDate').value = new Date().toISOString().substring(0, 10);
+
 function switchScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -338,9 +302,25 @@ function switchScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
-async function fetchAndShowMeal(targetType) {
-    switchScreen('mealScreen');
+// 달력에서 날짜를 선택해 조회할 때 실행되는 함수
+function fetchCustomDateMeal() {
+    const dateInput = document.getElementById('customDate').value;
+    if (!dateInput) {
+        alert('날짜를 정확히 선택해 주세요!');
+        return;
+    }
+    // 하이픈(-) 제거하여 YMD 포맷 생성
+    const ymd = dateInput.replace(/-/g, "");
+    const formattedDate = dateInput.replace(/-/g, ".");
     
+    document.getElementById("mealTitle").innerText = "선택한 날 급식";
+    document.getElementById("mealDate").innerText = formattedDate;
+    
+    executeMealApi(ymd);
+}
+
+// 오늘 / 내일 퀵 버튼 전용 함수
+async function fetchAndShowMeal(targetType) {
     const targetDate = new Date();
     if (targetType === "tomorrow") {
         targetDate.setDate(targetDate.getDate() + 1);
@@ -356,8 +336,14 @@ async function fetchAndShowMeal(targetType) {
 
     document.getElementById("mealDate").innerText = `${year}.${month}.${date}`;
 
+    executeMealApi(ymd);
+}
+
+// 공통 핵심 API 요청 엔진
+async function executeMealApi(ymd) {
+    switchScreen('mealScreen');
     const container = document.getElementById("mealContainer");
-    container.innerHTML = `<div class="status-msg">🍱 맛있는 급식을 가져오는 중...</div>`;
+    container.innerHTML = `<div class="status-msg">🍱 중마고 급식 데이터를 불러오는 중...</div>`;
 
     const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&MLSV_YMD=${ymd}&Type=json`;
 
@@ -366,7 +352,7 @@ async function fetchAndShowMeal(targetType) {
         const data = await response.json();
 
         if (!data.mealServiceDietInfo) {
-            container.innerHTML = `<div class="status-msg">정규 급식 정보가 없거나<br>주말/공휴일입니다. 😴</div>`;
+            container.innerHTML = `<div class="status-msg">해당 날짜에는 급식 정보가 없거나<br>주말 혹은 휴업일입니다. 😴</div>`;
             return;
         }
 
@@ -374,7 +360,9 @@ async function fetchAndShowMeal(targetType) {
         let combinedHtml = "";
 
         rows.forEach(meal => {
-            const mealType = meal.MMEAL_SC_NM;
+            const mealType = meal.MMEAL_SC_NM; // 조식, 중식, 석식 구분
+            
+            // 영양정보 알레르기 숫자 및 불필요한 공백 제거 깔끔화 공정
             const cleanedMenu = meal.DDISH_NM
                 .replace(/\([0-9./*]*\)/g, "")
                 .replace(/\s+/g, " ")
@@ -395,134 +383,8 @@ async function fetchAndShowMeal(targetType) {
 
         container.innerHTML = combinedHtml;
     } catch (error) {
-        container.innerHTML = `<div class="status-msg">⚠️ 데이터를 불러오지 못했습니다.</div>`;
-    }
-}
-
-function getWeekDates() {
-    const current = new Date();
-    const currentDay = current.getDay();
-    const startOfWeek = new Date(current);
-    
-    const distanceToMonday = (currentDay === 0) ? -6 : 1 - currentDay;
-    startOfWeek.setDate(current.getDate() + distanceToMonday);
-    
-    const weekArr = [];
-    for (let i = 0; i < 5; i++) {
-        const targetDay = new Date(startOfWeek);
-        targetDay.setDate(startOfWeek.getDate() + i);
-        weekArr.push(targetDay);
-    }
-    return weekArr;
-}
-
-function openTimetableScreen() {
-    switchScreen('timeScreen');
-    fetchWeeklyTimetable();
-}
-
-async function fetchWeeklyTimetable() {
-    const container = document.getElementById("timetableContainer");
-    container.innerHTML = `<div class="status-msg">📚 이번 주 월~금 주간 시간표를 분석 중입니다...</div>`;
-
-    const grade = document.getElementById("gradeSelect").value;
-    const rawClass = document.getElementById("classSelect").value;
-    
-    // [개선 포인트 1] 나이스 API 표준에 맞춰 반 번호를 무조건 두 자리 포맷(01, 02 등)으로 치환
-    const classNm = String(rawClass).padStart(2, '0');
-
-    const weekDays = getWeekDates();
-    const today = new Date();
-    const todayYMD = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
-    
-    const dayNames = ['월', '화', '수', '목', '금'];
-    
-    const firstDay = weekDays[0];
-    const lastDay = weekDays[4];
-    document.getElementById("timetableRangeTitle").innerText = `${firstDay.getMonth()+1}/${firstDay.getDate()} ~ ${lastDay.getMonth()+1}/${lastDay.getDate()} 기준`;
-
-    try {
-        const fetchPromises = weekDays.map(day => {
-            const ymd = `${day.getFullYear()}${String(day.getMonth() + 1).padStart(2, '0')}${String(day.getDate()).padStart(2, '0')}`;
-            // 파라미터 규격을 강화하여 전송
-            const url = `https://open.neis.go.kr/hub/hisTimetable?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNm}&Type=json`;
-            return fetch(url).then(res => res.json());
-        });
-
-        const results = await Promise.all(fetchPromises);
-        let totalHtml = "";
-
-        results.forEach((data, index) => {
-            const targetDate = weekDays[index];
-            const ymdString = `${targetDate.getFullYear()}${String(targetDate.getMonth() + 1).padStart(2, '0')}${String(targetDate.getDate()).padStart(2, '0')}`;
-            const isToday = (ymdString === todayYMD);
-
-            // 1교시부터 7교시까지 담을 맵 객체 선언
-            const periodsMap = { 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "" };
-
-            if (data.hisTimetable) {
-                const rows = data.hisTimetable[1].row;
-                rows.forEach(row => {
-                    const pNum = parseInt(row.PERIO);
-                    if (pNum >= 1 && pNum <= 7) {
-                        // [개선 포인트 2] 과목 텍스트 추출의 안전 장치를 3중으로 결합
-                        let subject = row.ITRT_CNTNT || row.ITRT_CONTENT || "";
-                        periodsMap[pNum] = subject.trim();
-                    }
-                });
-            }
-
-            const cardHighlightClass = isToday ? "is-today" : "";
-            const todayBadge = isToday ? "<span class='today-badge'>TODAY</span>" : "";
-
-            totalHtml += `
-                <div class="day-card ${cardHighlightClass}">
-                    <div class="day-title">
-                        <span>${dayNames[index]}요일 (${targetDate.getMonth()+1}/${targetDate.getDate()})</span>
-                        ${todayBadge}
-                    </div>
-                    <div class="day-grid">
-            `;
-
-            // [개선 포인트 3] 데이터 인덱스가 아닌 고정 루프 구조로 1~7교시 출력을 강제 바인딩
-            for (let p = 1; p <= 7; p++) {
-                let subjectShow = periodsMap[p];
-                let rowClass = "";
-                let textClass = "";
-                
-                if (!subjectShow || subjectShow === "") {
-                    // 학교 나이스 시스템상 비어있을 때 표기 전환
-                    subjectShow = "동아리/창체/미등록";
-                    rowClass = "no-class";
-                    textClass = "empty-text";
-                }
-
-                totalHtml += `
-                    <div class="period-row ${rowClass}">
-                        <span class="p-num">${p}교시</span>
-                        <span class="p-name ${textClass}">${subjectShow}</span>
-                    </div>
-                `;
-            }
-
-            totalHtml += `
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = totalHtml;
-
-        setTimeout(() => {
-            const todayCard = document.querySelector('.day-card.is-today');
-            if (todayCard) {
-                todayCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }, 150);
-
-    } catch (error) {
-        console.error("주간 시간표 로딩 오류:", error);
-        container.innerHTML = `<div class="status-msg">⚠️ 시간표를 원활하게 불러오지 못했습니다.</div>`;
+        console.error("급식 로딩 에러:", error);
+        container.innerHTML = `<div class="status-msg">⚠️ 데이터를 가져오는 중 오류가 발생했습니다. 다시 시도해 주세요.</div>`;
     }
 }
 </script>
