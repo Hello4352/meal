@@ -182,31 +182,6 @@
         cursor: pointer;
     }
 
-    .info-card {
-        background: var(--card-bg);
-        border-radius: 24px;
-        padding: 24px;
-        margin-bottom: 16px;
-        border: 1px solid rgba(0,0,0,0.03);
-    }
-
-    .card-header {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--accent-color);
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .card-body {
-        line-height: 1.8;
-        font-size: 16px;
-        color: #4a5568;
-    }
-
-    /* ===== 주간 시간표 신규 디자인 스타일 ===== */
     .day-card {
         background: var(--card-bg);
         border-radius: 22px;
@@ -226,7 +201,6 @@
         justify-content: space-between;
     }
 
-    /* [핵심] 오늘 요일 하이라이트 스타일 (진하고 선명하게) */
     .day-card.is-today {
         background: #f0f4ff;
         border: 2.5px solid #667eea;
@@ -268,6 +242,11 @@
         border-bottom: none;
     }
 
+    /* [신규 디자인 개편] 수업이 없을 때 스타일 처리 */
+    .period-row.no-class {
+        opacity: 0.55; /* 줄 전체를 은은하게 반투명 처리 */
+    }
+
     .p-num {
         font-size: 13px;
         font-weight: 700;
@@ -284,18 +263,16 @@
         color: var(--text-main);
     }
 
-    /* 오늘 수업인 경우 과목 글씨를 완전 두껍게 처리 */
     .day-card.is-today .p-name {
         font-weight: 800;
         color: #1a202c;
     }
 
-    .status-msg {
-        text-align: center;
-        padding: 40px 0;
-        color: var(--text-muted);
-        font-weight: 500;
-        line-height: 1.6;
+    /* 수업 없음 텍스트 스타일 */
+    .p-name.empty-text {
+        color: #a0aec0;
+        font-weight: 400;
+        font-style: italic;
     }
 </style>
 </head>
@@ -356,7 +333,6 @@
 </div>
 
 <script>
-// ===== [공통] 화면 라우팅 =====
 function switchScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -364,7 +340,6 @@ function switchScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
-// ===== [급식] API 연동 =====
 async function fetchAndShowMeal(targetType) {
     switchScreen('mealScreen');
     
@@ -426,20 +401,16 @@ async function fetchAndShowMeal(targetType) {
     }
 }
 
-// ===== [주간 시간표] 대폭 개편 로직 =====
-
-// 1. 현재 주(Week)의 월~금 날짜 객체 배열 가져오기 함수
 function getWeekDates() {
     const current = new Date();
-    const currentDay = current.getDay(); // 0: 일, 1: 월, ... 6: 토
+    const currentDay = current.getDay();
     const startOfWeek = new Date(current);
     
-    // 현재 요일 기준으로 이번 주 월요일 날짜 계산 기법 (일요일 처리 포함)
     const distanceToMonday = (currentDay === 0) ? -6 : 1 - currentDay;
     startOfWeek.setDate(current.getDate() + distanceToMonday);
     
     const weekArr = [];
-    for (let i = 0; i < 5; i++) { // 월(0)부터 금(4)까지 데이터 생성
+    for (let i = 0; i < 5; i++) {
         const targetDay = new Date(startOfWeek);
         targetDay.setDate(startOfWeek.getDate() + i);
         weekArr.push(targetDay);
@@ -465,13 +436,11 @@ async function fetchWeeklyTimetable() {
     
     const dayNames = ['월', '화', '수', '목', '금'];
     
-    // 이번 주 상단 타이틀 갱신 설정 (ex: 6월 1일 ~ 6월 5일)
     const firstDay = weekDays[0];
     const lastDay = weekDays[4];
     document.getElementById("timetableRangeTitle").innerText = `${firstDay.getMonth()+1}/${firstDay.getDate()} ~ ${lastDay.getMonth()+1}/${lastDay.getDate()} 기준`;
 
     try {
-        // 비동기 성능 최적화: 5일치 데이터를 병렬 처리(Promise.all)하여 한 번에 초고속 로딩
         const fetchPromises = weekDays.map(day => {
             const ymd = `${day.getFullYear()}${String(day.getMonth() + 1).padStart(2, '0')}${String(day.getDate()).padStart(2, '0')}`;
             const url = `https://open.neis.go.kr/hub/hisTimetable?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNm}&Type=json`;
@@ -484,25 +453,22 @@ async function fetchWeeklyTimetable() {
         results.forEach((data, index) => {
             const targetDate = weekDays[index];
             const ymdString = `${targetDate.getFullYear()}${String(targetDate.getMonth() + 1).padStart(2, '0')}${String(targetDate.getDate()).padStart(2, '0')}`;
-            
-            // 현재 순회 중인 카드가 오늘 날짜인지 판별 판정식
             const isToday = (ymdString === todayYMD);
 
-            // [보완 핵심] 무조건 7교시 틀을 유지하기 위한 배열 초기화 선언
-            const periods = Array(7).fill("수업 없음");
+            // 초기 가상 시간표 어레이 선언 (빈 문자열)
+            const periods = Array(7).fill("");
 
-            // 나이스 API 데이터 바인딩 파싱
             if (data.hisTimetable) {
                 const rows = data.hisTimetable[1].row;
                 rows.forEach(row => {
-                    const pNum = parseInt(row.PERIO); // 교시 정보
+                    const pNum = parseInt(row.PERIO);
                     if (pNum >= 1 && pNum <= 7) {
-                        periods[pNum - 1] = row.ITRT_CONTENT || row.ITRT_CNTNT; // 과목명 매핑
+                        // 공백을 완벽 제거(.trim())하고 나이스 표준 명칭인 ITRT_CNTNT만 정확히 바인딩
+                        periods[pNum - 1] = row.ITRT_CNTNT ? row.ITRT_CNTNT.trim() : "";
                     }
                 });
             }
 
-            // CSS 하이라이트 클래스 및 뱃지 분기 처리
             const cardHighlightClass = isToday ? "is-today" : "";
             const todayBadge = isToday ? "<span class='today-badge'>TODAY</span>" : "";
 
@@ -515,12 +481,22 @@ async function fetchWeeklyTimetable() {
                     <div class="day-grid">
             `;
 
-            // 무조건 1교시부터 7교시까지 생성 및 렌더링 루프 실행
             for (let p = 1; p <= 7; p++) {
+                let subjectShow = periods[p-1];
+                let rowClass = "";
+                let textClass = "";
+                
+                // 학교 측에서 정규 수업을 등록하지 않았거나 비워둔 교시일 때의 예외 처리 단락
+                if (!subjectShow) {
+                    subjectShow = "수업 없음 (또는 행사)";
+                    rowClass = "no-class";
+                    textClass = "empty-text";
+                }
+
                 totalHtml += `
-                    <div class="period-row">
+                    <div class="period-row ${rowClass}">
                         <span class="p-num">${p}교시</span>
-                        <span class="p-name">${periods[p-1]}</span>
+                        <span class="p-name ${textClass}">${subjectShow}</span>
                     </div>
                 `;
             }
@@ -533,7 +509,6 @@ async function fetchWeeklyTimetable() {
 
         container.innerHTML = totalHtml;
 
-        // 보너스 기능: 유저 편의를 위해 오늘 날짜 카드가 위치한 곳으로 스크롤 자동 이동 연산
         setTimeout(() => {
             const todayCard = document.querySelector('.day-card.is-today');
             if (todayCard) {
