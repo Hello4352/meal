@@ -163,16 +163,15 @@
         margin-bottom: 24px;
     }
 
-    /* 학년/반 선택 바 스타일 */
     .selector-container {
         display: flex;
         gap: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     .selector-container select {
         flex: 1;
-        padding: 12px;
+        padding: 14px;
         border-radius: 14px;
         border: 1px solid #e2e8f0;
         background-color: var(--card-bg);
@@ -207,35 +206,88 @@
         color: #4a5568;
     }
 
-    .timetable-list {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+    /* ===== 주간 시간표 신규 디자인 스타일 ===== */
+    .day-card {
+        background: var(--card-bg);
+        border-radius: 22px;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
     }
 
-    .subject-row {
+    .day-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 14px;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* [핵심] 오늘 요일 하이라이트 스타일 (진하고 선명하게) */
+    .day-card.is-today {
+        background: #f0f4ff;
+        border: 2.5px solid #667eea;
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+        transform: scale(1.01);
+    }
+
+    .day-card.is-today .day-title {
+        color: #764ba2;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .today-badge {
+        background: var(--primary-gradient);
+        color: white;
+        font-size: 11px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+
+    .day-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .period-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 14px 8px;
-        border-bottom: 1px solid #edf2f7;
+        padding: 10px 6px;
+        border-bottom: 1px dashed #e2e8f0;
     }
 
-    .subject-row:last-child {
+    .period-row:last-child {
         border-bottom: none;
     }
 
-    .period-tag {
+    .p-num {
+        font-size: 13px;
         font-weight: 700;
-        color: var(--accent-color);
-        background: rgba(102, 126, 234, 0.1);
-        padding: 4px 10px;
-        border-radius: 10px;
-        font-size: 14px;
+        color: var(--text-muted);
     }
 
-    .subject-name {
+    .day-card.is-today .p-num {
+        color: var(--accent-color);
+    }
+
+    .p-name {
+        font-size: 15px;
         font-weight: 600;
+        color: var(--text-main);
+    }
+
+    /* 오늘 수업인 경우 과목 글씨를 완전 두껍게 처리 */
+    .day-card.is-today .p-name {
+        font-weight: 800;
+        color: #1a202c;
     }
 
     .status-msg {
@@ -263,7 +315,7 @@
             <span>📅</span> 내일 급식 보기
         </button>
         <button class="menu-btn" onclick="openTimetableScreen()">
-            <span>📚</span> 오늘의 시간표
+            <span>📚</span> 주간 시간표 보기
         </button>
     </main>
 
@@ -279,17 +331,17 @@
     <section class="screen" id="timeScreen">
         <header class="top-navbar">
             <button class="back-btn" onclick="switchScreen('homeScreen')">←</button>
-            <h2 class="screen-title">오늘의 시간표</h2>
+            <h2 class="screen-title">주간 시간표</h2>
         </header>
-        <div class="date-indicator" id="timetableDate">금일 기준</div>
+        <div class="date-indicator" id="timetableRangeTitle">이번 주 학급 수업</div>
 
         <div class="selector-container">
-            <select id="gradeSelect" onchange="fetchTimetable()">
+            <select id="gradeSelect" onchange="fetchWeeklyTimetable()">
                 <option value="1">1학년</option>
                 <option value="2">2학년</option>
                 <option value="3">3학년</option>
             </select>
-            <select id="classSelect" onchange="fetchTimetable()">
+            <select id="classSelect" onchange="fetchWeeklyTimetable()">
                 <option value="1">1반</option>
                 <option value="2">2반</option>
                 <option value="3">3반</option>
@@ -298,7 +350,7 @@
             </select>
         </div>
 
-        <div class="info-card timetable-list" id="timetableContainer"></div>
+        <div id="timetableContainer"></div>
     </section>
 
 </div>
@@ -374,68 +426,124 @@ async function fetchAndShowMeal(targetType) {
     }
 }
 
-// ===== [시간표] 실시간 연동 비즈니스 로직 =====
-function openTimetableScreen() {
-    switchScreen('timeScreen');
-    fetchTimetable(); // 화면을 열 때 자동으로 시간표를 불러옴
+// ===== [주간 시간표] 대폭 개편 로직 =====
+
+// 1. 현재 주(Week)의 월~금 날짜 객체 배열 가져오기 함수
+function getWeekDates() {
+    const current = new Date();
+    const currentDay = current.getDay(); // 0: 일, 1: 월, ... 6: 토
+    const startOfWeek = new Date(current);
+    
+    // 현재 요일 기준으로 이번 주 월요일 날짜 계산 기법 (일요일 처리 포함)
+    const distanceToMonday = (currentDay === 0) ? -6 : 1 - currentDay;
+    startOfWeek.setDate(current.getDate() + distanceToMonday);
+    
+    const weekArr = [];
+    for (let i = 0; i < 5; i++) { // 월(0)부터 금(4)까지 데이터 생성
+        const targetDay = new Date(startOfWeek);
+        targetDay.setDate(startOfWeek.getDate() + i);
+        weekArr.push(targetDay);
+    }
+    return weekArr;
 }
 
-async function fetchTimetable() {
+function openTimetableScreen() {
+    switchScreen('timeScreen');
+    fetchWeeklyTimetable();
+}
+
+async function fetchWeeklyTimetable() {
     const container = document.getElementById("timetableContainer");
-    container.innerHTML = `<div class="status-msg">📚 오늘의 교실 시간표를 조회하는 중...</div>`;
-
-    // 1. 현재 날짜 정보 및 드롭다운 선택값 가져오기
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const date = String(today.getDate()).padStart(2, '0');
-    const ymd = `${year}${month}${date}`;
-
-    const week = ['일', '월', '화', '수', '목', '금', '토'];
-    document.getElementById("timetableDate").innerText = `${today.getMonth()+1}월 ${today.getDate()}일 (${week[today.getDay()]}요일)`;
+    container.innerHTML = `<div class="status-msg">📚 이번 주 월~금 주간 시간표를 가져오고 있습니다...</div>`;
 
     const grade = document.getElementById("gradeSelect").value;
     const classNm = document.getElementById("classSelect").value;
 
-    // 2. 나이스 고등학교 시간표 API 주소 구성
-    const API_URL = 'https://open.neis.go.kr/hub/hisTimetable';
-    const OFFICE_CODE = 'Q10'; // 전남교육청
-    const SCHOOL_CODE = '8490283'; // 중마고등학교
-    const url = `${API_URL}?ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNm}&Type=json`;
+    const weekDays = getWeekDates();
+    const today = new Date();
+    const todayYMD = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+    
+    const dayNames = ['월', '화', '수', '목', '금'];
+    
+    // 이번 주 상단 타이틀 갱신 설정 (ex: 6월 1일 ~ 6월 5일)
+    const firstDay = weekDays[0];
+    const lastDay = weekDays[4];
+    document.getElementById("timetableRangeTitle").innerText = `${firstDay.getMonth()+1}/${firstDay.getDate()} ~ ${lastDay.getMonth()+1}/${lastDay.getDate()} 기준`;
 
     try {
-        const response = await fetch(url);
-        const data = await response.json();
+        // 비동기 성능 최적화: 5일치 데이터를 병렬 처리(Promise.all)하여 한 번에 초고속 로딩
+        const fetchPromises = weekDays.map(day => {
+            const ymd = `${day.getFullYear()}${String(day.getMonth() + 1).padStart(2, '0')}${String(day.getDate()).padStart(2, '0')}`;
+            const url = `https://open.neis.go.kr/hub/hisTimetable?ATPT_OFCDC_SC_CODE=Q10&SD_SCHUL_CODE=8490283&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNm}&Type=json`;
+            return fetch(url).then(res => res.json());
+        });
 
-        // 시간표 정보가 없는 경우 (주말, 공휴일, 방학 등)
-        if (!data.hisTimetable) {
-            container.innerHTML = `<div class="status-msg">오늘 주말이거나 수업 정보가 없습니다. ✨</div>`;
-            return;
-        }
+        const results = await Promise.all(fetchPromises);
+        let totalHtml = "";
 
-        const rows = data.hisTimetable[1].row;
+        results.forEach((data, index) => {
+            const targetDate = weekDays[index];
+            const ymdString = `${targetDate.getFullYear()}${String(targetDate.getMonth() + 1).padStart(2, '0')}${String(targetDate.getDate()).padStart(2, '0')}`;
+            
+            // 현재 순회 중인 카드가 오늘 날짜인지 판별 판정식
+            const isToday = (ymdString === todayYMD);
 
-        // 교시(PERIO) 순서대로 정렬 (나이스 API는 간혹 순서가 섞여서 올 수 있음)
-        rows.sort((a, b) => parseInt(a.PERIO) - parseInt(b.PERIO));
+            // [보완 핵심] 무조건 7교시 틀을 유지하기 위한 배열 초기화 선언
+            const periods = Array(7).fill("수업 없음");
 
-        let html = "";
-        rows.forEach(row => {
-            const period = row.PERIO; // 몇 교시
-            const subject = row.ITRT_CNTNT; // 과목명 (예: 수학, 영어)
+            // 나이스 API 데이터 바인딩 파싱
+            if (data.hisTimetable) {
+                const rows = data.hisTimetable[1].row;
+                rows.forEach(row => {
+                    const pNum = parseInt(row.PERIO); // 교시 정보
+                    if (pNum >= 1 && pNum <= 7) {
+                        periods[pNum - 1] = row.ITRT_CONTENT || row.ITRT_CNTNT; // 과목명 매핑
+                    }
+                });
+            }
 
-            html += `
-                <div class="subject-row">
-                    <span class="period-tag">${period}교시</span>
-                    <span class="subject-name">${subject}</span>
+            // CSS 하이라이트 클래스 및 뱃지 분기 처리
+            const cardHighlightClass = isToday ? "is-today" : "";
+            const todayBadge = isToday ? "<span class='today-badge'>TODAY</span>" : "";
+
+            totalHtml += `
+                <div class="day-card ${cardHighlightClass}">
+                    <div class="day-title">
+                        <span>${dayNames[index]}요일 (${targetDate.getMonth()+1}/${targetDate.getDate()})</span>
+                        ${todayBadge}
+                    </div>
+                    <div class="day-grid">
+            `;
+
+            // 무조건 1교시부터 7교시까지 생성 및 렌더링 루프 실행
+            for (let p = 1; p <= 7; p++) {
+                totalHtml += `
+                    <div class="period-row">
+                        <span class="p-num">${p}교시</span>
+                        <span class="p-name">${periods[p-1]}</span>
+                    </div>
+                `;
+            }
+
+            totalHtml += `
+                    </div>
                 </div>
             `;
         });
 
-        container.innerHTML = html;
+        container.innerHTML = totalHtml;
+
+        // 보너스 기능: 유저 편의를 위해 오늘 날짜 카드가 위치한 곳으로 스크롤 자동 이동 연산
+        setTimeout(() => {
+            const todayCard = document.querySelector('.day-card.is-today');
+            if (todayCard) {
+                todayCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 150);
 
     } catch (error) {
-        console.error("시간표 로딩 에러:", error);
-        container.innerHTML = `<div class="status-msg">⚠️ 시간표를 불러오는데 실패했습니다.</div>`;
+        console.error("주간 시간표 로딩 오류:", error);
+        container.innerHTML = `<div class="status-msg">⚠️ 시간표를 원활하게 불러오지 못했습니다.</div>`;
     }
 }
 </script>
